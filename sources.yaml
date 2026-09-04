@@ -1,0 +1,68 @@
+# Job sources for the daily fetch script.
+#
+# Each entry:
+#   name      - short unique id, used in logs and as part of each job's dedup id
+#   type      - which parser in fetch_jobs.py knows how to read this API's response
+#               (remoteok / arbeitnow / himalayas / remotive / adzuna / findwork / usajobs)
+#   enabled   - set false to skip a source without deleting it
+#   base_url  - the API endpoint
+#   params    - optional query params sent with the request
+#   api_key_env / api_id_env / api_email_env
+#             - name of the environment variable holding the credential.
+#               Sources that need a key are skipped (not failed) if the
+#               variable isn't set, so the script still runs with whatever
+#               sources are ready.
+#
+# Free, no signup required:
+sources:
+  - name: remoteok
+    type: remoteok
+    enabled: true
+    base_url: https://remoteok.com/api
+
+  - name: arbeitnow
+    type: arbeitnow
+    enabled: true
+    base_url: https://arbeitnow.com/api/job-board-api
+
+  - name: himalayas
+    type: himalayas
+    enabled: true
+    base_url: https://himalayas.app/jobs/api
+    params:
+      limit: 20
+
+  - name: remotive
+    type: remotive
+    enabled: true
+    base_url: https://remotive.com/api/remote-jobs
+    params:
+      category: software-dev
+
+  # Free, instant self-serve key required (set the env var to enable):
+  - name: adzuna
+    type: adzuna
+    enabled: true
+    base_url: https://api.adzuna.com/v1/api/jobs/us/search/1
+    api_id_env: ADZUNA_APP_ID
+    api_key_env: ADZUNA_APP_KEY
+    params:
+      what: software engineer
+      content-type: application/json
+      results_per_page: 50
+
+  - name: findwork
+    type: findwork
+    enabled: true
+    base_url: https://findwork.dev/api/jobs/
+    api_key_env: FINDWORK_API_KEY
+
+  - name: usajobs
+    type: usajobs
+    enabled: true
+    base_url: https://data.usajobs.gov/api/search
+    api_key_env: USAJOBS_API_KEY
+    api_email_env: USAJOBS_EMAIL
+    params:
+      Keyword: software developer
+      ResultsPerPage: 50
