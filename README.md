@@ -49,9 +49,16 @@ cron/launchd.
 | `--output` | `data/jobs.json` | Where to write the merged jobs |
 | `--workers` | `8` | Max parallel source fetches |
 
-Sources that need a key (Adzuna, Findwork, USAJOBS) are enabled by setting the
-env vars named in `sources.yaml` (e.g. `ADZUNA_APP_ID` / `ADZUNA_APP_KEY`); the
-free no-signup sources (RemoteOK, Arbeitnow, Himalayas, Remotive) work as-is.
+Sources that need a key (Adzuna, Findwork, Jooble India, USAJOBS) are enabled
+by setting the env vars named in `sources.yaml` (e.g. `ADZUNA_APP_ID` /
+`ADZUNA_APP_KEY` or `JOOBLE_IN_API_KEY`); the free no-signup sources (RemoteOK,
+Arbeitnow, Himalayas, Remotive) work as-is.
+
+The config includes India-focused API sources:
+
+- `adzuna_in` uses Adzuna's India endpoint.
+- `jooble_in` uses Jooble India's REST API and is skipped until
+  `JOOBLE_IN_API_KEY` is set.
 
 ## 2. Match your resume — `match_jobs.py`
 

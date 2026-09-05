@@ -111,6 +111,23 @@ def get_with_retry(session, url, **kwargs):
     raise last_exc
 
 
+def post_with_retry(session, url, **kwargs):
+    kwargs.setdefault("timeout", REQUEST_TIMEOUT)
+    kwargs.setdefault("headers", {})
+    kwargs["headers"].setdefault("User-Agent", USER_AGENT)
+    last_exc = None
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            resp = session.post(url, **kwargs)
+            resp.raise_for_status()
+            return resp
+        except requests.RequestException as exc:
+            last_exc = exc
+            if attempt < MAX_RETRIES:
+                time.sleep(RETRY_BACKOFF_SECONDS * attempt)
+    raise last_exc
+
+
 # ---------------------------------------------------------------------------
 # Per-source parsers. Each takes (source_cfg, session) and returns a list of
 # normalized job dicts. Keep these defensive (.get() with fallbacks) so one
@@ -126,7 +143,7 @@ def fetch_remoteok(cfg, session):
         if not isinstance(item, dict) or "id" not in item:
             continue  # first element is a legal/attribution notice, not a job
         jobs.append(normalize(
-            source="remoteok",
+            source=cfg["name"],
             external_id=str(item.get("id")),
             title=item.get("position"),
             company=item.get("company"),
@@ -147,7 +164,7 @@ def fetch_arbeitnow(cfg, session):
     jobs = []
     for item in data.get("data", []):
         jobs.append(normalize(
-            source="arbeitnow",
+            source=cfg["name"],
             external_id=item.get("slug"),
             title=item.get("title"),
             company=item.get("company_name"),
@@ -170,7 +187,7 @@ def fetch_himalayas(cfg, session):
         locations = item.get("locationRestrictions") or []
         location = "; ".join(locations) if locations else "Remote (no restriction)"
         jobs.append(normalize(
-            source="himalayas",
+            source=cfg["name"],
             external_id=str(item.get("guid") or ""),
             title=item.get("title"),
             company=item.get("companyName"),
@@ -191,7 +208,7 @@ def fetch_remotive(cfg, session):
     jobs = []
     for item in data.get("jobs", []):
         jobs.append(normalize(
-            source="remotive",
+            source=cfg["name"],
             external_id=str(item.get("id")),
             title=item.get("title"),
             company=item.get("company_name"),
@@ -220,7 +237,7 @@ def fetch_adzuna(cfg, session):
     for item in data.get("results", []):
         category = item.get("category") or {}
         jobs.append(normalize(
-            source="adzuna",
+            source=cfg["name"],
             external_id=str(item.get("id")),
             title=item.get("title"),
             company=(item.get("company") or {}).get("display_name"),
@@ -245,7 +262,7 @@ def fetch_findwork(cfg, session):
     jobs = []
     for item in data.get("results", []):
         jobs.append(normalize(
-            source="findwork",
+            source=cfg["name"],
             external_id=str(item.get("id")),
             title=item.get("role"),
             company=item.get("company_name"),
@@ -256,6 +273,32 @@ def fetch_findwork(cfg, session):
             posted_at=item.get("date_posted"),
             salary=None,
             description=item.get("text"),
+        ))
+    return jobs
+
+
+def fetch_jooble(cfg, session):
+    api_key = os.environ.get(cfg.get("api_key_env", ""))
+    if not api_key:
+        raise SourceSkipped(f"missing {cfg.get('api_key_env')} env var")
+    url = cfg["base_url"].rstrip("/") + "/" + api_key
+    headers = {"Content-Type": "application/json"}
+    resp = post_with_retry(session, url, headers=headers, json=cfg.get("params") or {})
+    data = resp.json()
+    jobs = []
+    for item in data.get("jobs", []):
+        jobs.append(normalize(
+            source=cfg["name"],
+            external_id=str(item.get("id") or ""),
+            title=item.get("title"),
+            company=item.get("company"),
+            location=item.get("location"),
+            remote=None,
+            url=item.get("link"),
+            tags=[item.get("type")] if item.get("type") else [],
+            posted_at=item.get("updated"),
+            salary=item.get("salary") or None,
+            description=item.get("snippet"),
         ))
     return jobs
 
@@ -279,7 +322,7 @@ def fetch_usajobs(cfg, session):
         locations = d.get("PositionLocation") or []
         remuneration = d.get("PositionRemuneration") or [{}]
         jobs.append(normalize(
-            source="usajobs",
+            source=cfg["name"],
             external_id=item.get("MatchedObjectId"),
             title=d.get("PositionTitle"),
             company=d.get("OrganizationName"),
@@ -304,6 +347,7 @@ PARSERS = {
     "remotive": fetch_remotive,
     "adzuna": fetch_adzuna,
     "findwork": fetch_findwork,
+    "jooble": fetch_jooble,
     "usajobs": fetch_usajobs,
 }
 
