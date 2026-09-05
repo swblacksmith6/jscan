@@ -1,0 +1,87 @@
+# Profiles for running the matcher for multiple people.
+#
+# run_profiles.py fetches jobs once, then loops over each enabled profile and
+# calls match_jobs.py with that profile's resume, report path, and email
+# settings.
+
+defaults:
+  jobs: data/jobs.json
+  html_dir: reports
+  max_age_hours: 24
+  top: 30
+  shortlist: 50
+  provider: gmail
+  from: prosprc@gmail.com
+  model: nemotron-3.5-lightning:30b-mlx
+  agent: false
+  verbose: false
+  summary_only: true
+
+profiles:
+  - id: abhishek
+    name: Abhishek
+    enabled: true
+    resume: resumes/abhishek.md
+    html: reports/abhishek_matches.html
+    to: reach.sriharsha@gmail.com
+    subject: "Job matches for Abhishek"
+    target_roles:
+      - Application Security Engineer
+      - Product Security Engineer
+      - Security Architect
+      - DevSecOps Engineer
+    keywords:
+      - application security
+      - product security
+      - appsec
+      - threat modeling
+      - secure code review
+      - kubernetes security
+      - cloud security
+    locations:
+      - India
+      - Bengaluru
+      - Hyderabad
+      - Pune
+      - Chennai
+      - Gurugram
+      - Remote India
+    exclude_keywords:
+      - sales
+      - marketing
+      - recruiter
+      - support
+      - content writer
+
+  - id: harsha
+    name: Harsha
+    enabled: true
+    resume: resumes/harsha.md
+    html: reports/harsha_matches.html
+    to: reach.sriharsha@gmail.com
+    subject: "Job matches for Harsha"
+    target_roles:
+      - Software Engineer
+      - Backend Engineer
+      - Platform Engineer
+      - Forward Engineer
+      - Forward Deployment Engineer
+      - Member of Technical Staff
+    keywords:
+      - software engineer
+      - backend
+      - python
+      - distributed systems
+      - cloud
+      - platform engineering
+    locations:
+      - India
+      - Bengaluru
+      - Hyderabad
+      - Pune
+      - Remote India
+    exclude_keywords:
+      - sales
+      - marketing
+      - recruiter
+      - customer support

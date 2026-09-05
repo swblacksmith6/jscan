@@ -216,6 +216,8 @@ sends the finalized report itself (via Gmail unless `--provider resend`).
 | `fetch_jobs.py` | Daily job fetcher |
 | `sources.yaml` | Job sources and their API/config |
 | `match_jobs.py` | Resume-to-job matcher + emailer |
+| `profiles.yaml` | Per-person match settings for cron/profile runs |
+| `run_profiles.py` | Fetch once, then run `match_jobs.py` for every enabled profile |
 | `input_resume.md` | Your resume (Markdown) |
 | `data/jobs.json` | Fetched, deduped jobs |
 | `matches.html` | Generated match report |
@@ -233,6 +235,10 @@ sends the finalized report itself (via Gmail unless `--provider resend`).
 
 # Or let the agent do the whole thing:
 .venv/bin/python match_jobs.py --agent --to you@example.com
+
+# Cron-friendly multi-profile run:
+.venv/bin/python run_profiles.py
 ```
 
-Wire any of these into cron/launchd for a daily job digest in your inbox.
+Wire `run_matches.sh` into cron/launchd for a daily job digest for every enabled
+profile in `profiles.yaml`.

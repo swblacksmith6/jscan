@@ -730,16 +730,17 @@ def fast_match(resume_text, jobs, args, subject):
 
     name = extract_candidate_name(resume_text)
     print("\n" + "=" * 66)
-    print(f"TOP {len(matches)} JOB MATCHES — {name}")
+    print(f"Found {len(matches)} job match(es) — {name}")
     print("=" * 66)
-    for i, m in enumerate(matches, 1):
-        j = m["job"]
-        sc = m.get("fit_score")
-        sc = f"{sc:g}/10" if isinstance(sc, (int, float)) else "n/a"
-        print(f"{i:2}. [{sc:>5}] {j.get('title')} — {j.get('company') or 'n/a'}")
-        if m.get("reason"):
-            print(f"        {m['reason']}")
-        print(f"        {j.get('url')}")
+    if not args.summary_only:
+        for i, m in enumerate(matches, 1):
+            j = m["job"]
+            sc = m.get("fit_score")
+            sc = f"{sc:g}/10" if isinstance(sc, (int, float)) else "n/a"
+            print(f"{i:2}. [{sc:>5}] {j.get('title')} — {j.get('company') or 'n/a'}")
+            if m.get("reason"):
+                print(f"        {m['reason']}")
+            print(f"        {j.get('url')}")
 
     out_path = Path(args.html)
     html_doc = build_html(matches, name, out_path)
@@ -778,6 +779,8 @@ def main():
                     help="max agent steps before falling back to fast scoring (--agent)")
     ap.add_argument("-v", "--verbose", action="store_true",
                     help="log LLM requests/replies and agent tool calls")
+    ap.add_argument("--summary-only", action="store_true",
+                    help="print only the number of matches, not every match")
     ap.add_argument("--to", help="email the HTML report to this address (Gmail by default; needs GMAIL_ADDRESS + GMAIL_APP_PASSWORD)")
     ap.add_argument("--send-only", action="store_true",
                     help="just email the existing --html file via --to; no fetch, match, or model")
